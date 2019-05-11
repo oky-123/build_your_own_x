@@ -16,6 +16,18 @@ impl VM {
         }
     }
 
+    fn next_8_bits(&mut self) -> u8 {
+        let result = self.program[self.pc];
+        self.pc += 1;
+        return result;
+    }
+
+    fn next_16_bits(&mut self) -> u16 {
+        let result = ((self.program[self.pc] as u16) << 8) | self.program[self.pc + 1] as u16;
+        self.pc += 2;
+        return result;
+    }
+
     fn decode_opcode(&mut self) -> Opcode {
         let opcode = Opcode::from(self.program[self.pc]);
         self.pc += 1;
@@ -31,6 +43,12 @@ impl VM {
                 Opcode::HLT => {
                     println!("HLT encountered");
                     return;
+                }
+                Opcode::LOAD => {
+                    let register = self.next_8_bits() as usize; // We cast to usize so we can use it as an index into the array
+                    let number = self.next_16_bits() as u16;
+                    self.registers[register] = number as i32; // Our registers are i32s, so we need to cast it. We'll cover that later.
+                    continue; // Start another iteration of the loop. The next 8 bits waiting to be read should be an opcode.
                 }
                 _ => {
                     println!("Unrecognized opcode found! Terminating!");
@@ -67,5 +85,13 @@ mod tests {
         test_vm.program = test_bytes;
         test_vm.run();
         assert_eq!(test_vm.pc, 1);
+    }
+
+    #[test]
+    fn test_load_opcode() {
+        let mut test_vm = get_test_vm();
+        test_vm.program = vec![1, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
+        test_vm.run();
+        assert_eq!(test_vm.registers[0], 500);
     }
 }
