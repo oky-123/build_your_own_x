@@ -1,3 +1,5 @@
+use super::instruction::*;
+
 #[derive(Debug)]
 pub struct VM {
     registers: [i32; 32],
@@ -11,6 +13,30 @@ impl VM {
             registers: [0; 32],
             program: vec![],
             pc: 0,
+        }
+    }
+
+    fn decode_opcode(&mut self) -> Opcode {
+        let opcode = Opcode::from(self.program[self.pc]);
+        self.pc += 1;
+        return opcode;
+    }
+
+    pub fn run(&mut self) {
+        loop {
+            if self.pc >= self.program.len() {
+                break;
+            }
+            match self.decode_opcode() {
+                Opcode::HLT => {
+                    println!("HLT encountered");
+                    return;
+                }
+                _ => {
+                    println!("Unrecognized opcode found! Terminating!");
+                    return;
+                }
+            }
         }
     }
 }
