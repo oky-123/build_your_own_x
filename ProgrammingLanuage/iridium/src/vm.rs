@@ -1,10 +1,17 @@
+#[derive(Debug)]
 pub struct VM {
     registers: [i32; 32],
+    pc: usize,
+    program: Vec<u8>,
 }
 
 impl VM {
     pub fn new() -> VM {
-        VM { registers: [0; 32] }
+        VM {
+            registers: [0; 32],
+            program: vec![],
+            pc: 0,
+        }
     }
 }
 
