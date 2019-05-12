@@ -231,4 +231,14 @@ mod tests {
 
         assert_eq!(test_vm.pc, 0);
     }
+
+    #[test]
+    fn test_eq_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.program = vec![9, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.equal_flag, true);
+        assert_eq!(test_vm.pc, 4);
+    }
 }
