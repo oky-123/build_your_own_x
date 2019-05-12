@@ -181,4 +181,14 @@ mod tests {
         assert_eq!(test_vm.registers[3], 1);
         assert_eq!(test_vm.remainder, 1)
     }
+
+    #[test]
+    fn test_jmp_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![6, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 1);
+    }
 }
