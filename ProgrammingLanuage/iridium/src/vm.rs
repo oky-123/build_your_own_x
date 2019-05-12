@@ -38,6 +38,7 @@ impl VM {
         let mut is_done = false;
         while !is_done {
             is_done = self.execute_instruction();
+            println!("{}", is_done);
         }
     }
 
@@ -47,7 +48,7 @@ impl VM {
 
     fn execute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
-            return false;
+            return true;
         }
         match self.decode_opcode() {
             Opcode::LOAD => {
@@ -57,14 +58,14 @@ impl VM {
             }
             Opcode::HLT => {
                 println!("HLT encountered");
-                return false;
+                return true;
             }
             Opcode::IGL => {
                 println!("IGL encountered");
-                return false;
+                return true;
             }
         }
-        true
+        false
     }
 }
 
