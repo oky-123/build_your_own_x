@@ -83,6 +83,10 @@ impl VM {
                 self.registers[self.next_8_bits() as usize] = register1 / register2;
                 self.remainder = (register1 % register2) as u32;
             }
+            Opcode::JMP => {
+                let target = self.registers[self.next_8_bits() as usize];
+                self.pc = target as usize;
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
