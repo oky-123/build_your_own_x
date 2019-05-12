@@ -31,10 +31,16 @@ impl REPL {
                 .expect("Unable to read line from user");
 
             let buffer = buffer.trim();
+            self.command_buffer.push(buffer.to_string());
             match buffer {
                 ".quit" => {
                     println!("Farewell! Have a great day!");
                     std::process::exit(0);
+                }
+                ".history" => {
+                    for command in &self.command_buffer {
+                        println!("{}", command);
+                    }
                 }
                 _ => {
                     println!("Invalid input");
