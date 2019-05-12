@@ -3,7 +3,7 @@ use super::instruction::*;
 #[derive(Debug)]
 pub struct VM {
     pub registers: [i32; 32],
-    pc: usize,            // pointer-sized: u64
+    pub pc: usize,        // pointer-sized: u64
     pub program: Vec<u8>, // u8 <= 256
     remainder: u32,
     equal_flag: bool,
@@ -52,6 +52,10 @@ impl VM {
 
     pub fn run_once(&mut self) {
         self.execute_instruction();
+    }
+
+    pub fn add_bytes(&mut self, mut b: Vec<u8>) {
+        self.program.append(&mut b);
     }
 
     fn execute_instruction(&mut self) -> bool {
