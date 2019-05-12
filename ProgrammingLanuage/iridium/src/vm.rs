@@ -133,4 +133,21 @@ mod tests {
         assert_eq!(test_vm.registers[0], 10);
         assert_eq!(test_vm.registers[31], 10);
     }
+
+    #[test]
+    fn test_div_opcode() {
+        let mut test_vm = VM::new();
+        let mut array = [0; 32];
+        for i in 0..32 {
+            array[i] = i as i32;
+        }
+        test_vm.init_registers(array);
+        test_vm.program = vec![3, 3, 2, 3]; // 3 / 2 = 1 remainder 1
+        assert_eq!(test_vm.registers[3], 3);
+        assert_eq!(test_vm.registers[2], 2);
+        test_vm.run();
+
+        assert_eq!(test_vm.registers[3], 1);
+        assert_eq!(test_vm.remainder, 1)
+    }
 }
