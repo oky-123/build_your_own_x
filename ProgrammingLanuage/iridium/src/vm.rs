@@ -3,8 +3,8 @@ use super::instruction::*;
 #[derive(Debug)]
 pub struct VM {
     registers: [i32; 32],
-    pc: usize,
-    program: Vec<u8>,
+    pc: usize,        // pointer-sized: u64
+    program: Vec<u8>, // u8 <= 256
     remainder: u32,
 }
 
@@ -67,6 +67,16 @@ impl VM {
                 let register2 = self.registers[self.next_8_bits() as usize];
                 self.registers[self.next_8_bits() as usize] = register1 + register2;
             }
+            Opcode::SUB => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 - register2;
+            }
+            Opcode::MUL => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 * register2;
+            }
             Opcode::DIV => {
                 let register1 = self.registers[self.next_8_bits() as usize];
                 let register2 = self.registers[self.next_8_bits() as usize];
@@ -115,23 +125,40 @@ mod tests {
     }
 
     #[test]
-    fn test_load_and_add_opcode() {
-        let mut test_vm = VM::new();
-        test_vm.program = vec![1, 0, 1, 244, 2, 0, 1, 1, 0]; // 1, 244 = [0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0],
-                                                             // 500 - 244 = 256
-        test_vm.run();
-        assert_eq!(test_vm.registers[0], 500);
-        assert_eq!(test_vm.registers[1], 500);
-        assert_eq!(test_vm.pc, 9);
-    }
-
-    #[test]
     fn test_init_registers() {
         let mut test_vm = VM::new();
         test_vm.init_registers([10; 32]);
 
         assert_eq!(test_vm.registers[0], 10);
         assert_eq!(test_vm.registers[31], 10);
+    }
+
+    #[test]
+    fn test_sub_opcode() {
+        let mut test_vm = VM::new();
+        let mut array = [0; 32];
+        for i in 0..32 {
+            array[i] = i as i32;
+        }
+        test_vm.init_registers(array);
+        test_vm.program = vec![3, 3, 1, 4]; // 3 - 1 = 2
+        test_vm.run();
+
+        assert_eq!(test_vm.registers[4], 2);
+    }
+
+    #[test]
+    fn test_mul_opcode() {
+        let mut test_vm = VM::new();
+        let mut array = [0; 32];
+        for i in 0..32 {
+            array[i] = i as i32;
+        }
+        test_vm.init_registers(array);
+        test_vm.program = vec![4, 3, 4, 5]; // 3 * 4 = 12
+        test_vm.run();
+
+        assert_eq!(test_vm.registers[5], 12);
     }
 
     #[test]
@@ -142,7 +169,7 @@ mod tests {
             array[i] = i as i32;
         }
         test_vm.init_registers(array);
-        test_vm.program = vec![3, 3, 2, 3]; // 3 / 2 = 1 remainder 1
+        test_vm.program = vec![5, 3, 2, 3]; // 3 / 2 = 1 remainder 1
         assert_eq!(test_vm.registers[3], 3);
         assert_eq!(test_vm.registers[2], 2);
         test_vm.run();
