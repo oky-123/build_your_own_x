@@ -2,9 +2,9 @@ use super::instruction::*;
 
 #[derive(Debug)]
 pub struct VM {
-    registers: [i32; 32],
-    pc: usize,        // pointer-sized: u64
-    program: Vec<u8>, // u8 <= 256
+    pub registers: [i32; 32],
+    pc: usize,            // pointer-sized: u64
+    pub program: Vec<u8>, // u8 <= 256
     remainder: u32,
     equal_flag: bool,
 }
