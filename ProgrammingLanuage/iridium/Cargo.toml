@@ -5,3 +5,4 @@ authors = ["oky-123 <oky123.ia@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+nom = "^4.0"
