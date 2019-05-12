@@ -1,15 +1,11 @@
+use crate::assembler::Token;
+
 use nom::digit;
 use nom::types::CompleteStr;
 
-named!(opcode_load<CompleteStr, Token>,
-   do_parse!(
-       tag!("load") >> (Token::Op{code: Opcode::LOAD})
-   )
-);
-
 named!(register<CompleteStr, Token>,
-    do_parse!(
-        ws!(
+    ws!(
+        do_parse!(
            tag!("$") >>
             reg_num: digit >>
             (
@@ -23,18 +19,6 @@ named!(register<CompleteStr, Token>,
 
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_opcode_load() {
-        let result = opcode_load(CompleteStr("load"));
-        assert_eq!(result.is_ok(), true);
-        let (rest, token) = result.unwrap();
-        assert_eq!(token, Token::Op { code: Opcode::LOAD });
-        assert_eq!(rest, CompleteStr(""));
-
-        let result = opcode_load(CompleteStr("aold"));
-        assert_eq!(result.is_ok(), false);
-    }
 
     #[test]
     fn test_parse_register() {
