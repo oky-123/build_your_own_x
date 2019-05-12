@@ -8,6 +8,7 @@ pub enum Opcode {
     MUL,
     DIV,
     JMP,
+    JMPF,
 }
 
 impl From<u8> for Opcode {
@@ -20,6 +21,7 @@ impl From<u8> for Opcode {
             4 => return Opcode::MUL,
             5 => return Opcode::DIV,
             6 => return Opcode::JMP,
+            7 => return Opcode::JMPF,
             _ => return Opcode::IGL,
         }
     }

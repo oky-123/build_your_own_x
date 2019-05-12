@@ -87,6 +87,10 @@ impl VM {
                 let target = self.registers[self.next_8_bits() as usize];
                 self.pc = target as usize;
             }
+            Opcode::JMPF => {
+                let value = self.registers[self.next_8_bits() as usize];
+                self.pc += value as usize;
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
@@ -191,4 +195,15 @@ mod tests {
 
         assert_eq!(test_vm.pc, 1);
     }
+
+    #[test]
+    fn test_jmpf_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.program = vec![7, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 4);
+    }
+
 }
