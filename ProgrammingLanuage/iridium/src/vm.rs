@@ -6,6 +6,7 @@ pub struct VM {
     pc: usize,        // pointer-sized: u64
     program: Vec<u8>, // u8 <= 256
     remainder: u32,
+    equal_flag: bool,
 }
 
 impl VM {
@@ -15,6 +16,7 @@ impl VM {
             program: vec![],
             pc: 0,
             remainder: 0,
+            equal_flag: false,
         }
     }
 
@@ -94,6 +96,16 @@ impl VM {
             Opcode::JMPB => {
                 let value = self.registers[self.next_8_bits() as usize];
                 self.pc -= value as usize;
+            }
+            Opcode::EQ => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                if register1 == register2 {
+                    self.equal_flag = true;
+                } else {
+                    self.equal_flag = false;
+                }
+                self.next_8_bits();
             }
             Opcode::HLT => {
                 println!("HLT encountered");
