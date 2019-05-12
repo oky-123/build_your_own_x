@@ -56,6 +56,11 @@ impl VM {
                 let number = self.next_16_bits() as u32;
                 self.registers[register] = number as i32;
             }
+            Opcode::ADD => {
+                let register1 = self.registers[self.next_8_bits() as usize];
+                let register2 = self.registers[self.next_8_bits() as usize];
+                self.registers[self.next_8_bits() as usize] = register1 + register2;
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
@@ -100,11 +105,11 @@ mod tests {
     #[test]
     fn test_load_opcode() {
         let mut test_vm = VM::new();
-        test_vm.program = vec![1, 0, 1, 244, 0, 0]; // Remember, this is how we represent 500 using two u8s in little endian format
-                                                    // [0, 0, 0, 0, 0, 0, 0, 1] [1, 1, 1, 1, 1, 0, 1, 0],
-                                                    // 500 - 244 = 256
+        test_vm.program = vec![1, 0, 1, 244, 2, 0, 1, 1, 0]; // 1, 244 = [0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0],
+                                                             // 500 - 244 = 256
         test_vm.run();
         assert_eq!(test_vm.registers[0], 500);
-        assert_eq!(test_vm.pc, 5);
+        assert_eq!(test_vm.registers[1], 500);
+        assert_eq!(test_vm.pc, 9);
     }
 }
