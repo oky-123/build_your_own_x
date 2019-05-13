@@ -6,7 +6,7 @@ use nom::types::CompleteStr;
 named!(pub register<CompleteStr, Token>,
     ws!(
         do_parse!(
-           tag!("$") >>
+            tag!("$") >>
             reg_num: digit >>
             (
                 Token::Register{

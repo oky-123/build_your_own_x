@@ -1,3 +1,5 @@
+use nom::types::CompleteStr;
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Opcode {
     HLT,
@@ -39,6 +41,30 @@ impl From<u8> for Opcode {
             14 => return Opcode::LTQ,
             15 => return Opcode::JEQ,
             _ => return Opcode::IGL,
+        }
+    }
+}
+
+impl<'a> From<CompleteStr<'a>> for Opcode {
+    fn from(v: CompleteStr<'a>) -> Self {
+        let lowercased_opcode = v.to_lowercase();
+        match CompleteStr(&lowercased_opcode) {
+            CompleteStr("load") => Opcode::LOAD,
+            CompleteStr("add") => Opcode::ADD,
+            CompleteStr("sub") => Opcode::SUB,
+            CompleteStr("mul") => Opcode::MUL,
+            CompleteStr("div") => Opcode::DIV,
+            CompleteStr("hlt") => Opcode::HLT,
+            CompleteStr("jmp") => Opcode::JMP,
+            CompleteStr("jmpf") => Opcode::JMPF,
+            CompleteStr("jmpb") => Opcode::JMPB,
+            CompleteStr("eq") => Opcode::EQ,
+            CompleteStr("neq") => Opcode::NEQ,
+            CompleteStr("gte") => Opcode::GTQ,
+            CompleteStr("gt") => Opcode::GT,
+            CompleteStr("lte") => Opcode::LTQ,
+            CompleteStr("lt") => Opcode::LT,
+            _ => Opcode::IGL,
         }
     }
 }
