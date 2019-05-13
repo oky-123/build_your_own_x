@@ -1,4 +1,5 @@
 use super::instruction::*;
+use std::num::ParseIntError;
 
 #[derive(Debug)]
 pub struct VM {
@@ -52,6 +53,36 @@ impl VM {
 
     pub fn run_once(&mut self) {
         self.execute_instruction();
+    }
+
+    pub fn add_hexes(&mut self, i: &str) {
+        let result = self.parse_hex(i);
+        match result {
+            Err(e) => {
+                println!("{}", e);
+            }
+            Ok(bytes) => {
+                self.add_bytes(bytes);
+            }
+        }
+    }
+
+    fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
+        let split = i.split(" ").collect::<Vec<&str>>();
+
+        let mut results: Vec<u8> = vec![];
+        for hex_string in split {
+            let byte = u8::from_str_radix(&hex_string, 16);
+            match byte {
+                Ok(result) => {
+                    results.push(result);
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+        }
+        Ok(results)
     }
 
     pub fn add_bytes(&mut self, mut b: Vec<u8>) {
