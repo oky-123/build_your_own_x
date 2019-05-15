@@ -110,6 +110,7 @@ named!(pub instruction_three<CompleteStr, AssemblerInstruction>,
 named!(pub instruction<CompleteStr, AssemblerInstruction>,
    do_parse!(
        ins: alt!(
+           instruction_three |
            instruction_one |
            instruction_two
        ) >> ( ins )
@@ -199,6 +200,20 @@ mod tests {
                     operand1: Some(Token::Register { reg_num: 1 }),
                     operand2: Some(Token::IntegerOperand { value: 100 }),
                     operand3: None,
+                }
+            ))
+        );
+
+        let result = instruction(CompleteStr("add $1 $2 $3"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: Token::Op { code: Opcode::ADD },
+                    operand1: Some(Token::Register { reg_num: 1 }),
+                    operand2: Some(Token::Register { reg_num: 2 }),
+                    operand3: Some(Token::Register { reg_num: 3 }),
                 }
             ))
         );
