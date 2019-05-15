@@ -90,6 +90,23 @@ named!(pub instruction_two<CompleteStr, AssemblerInstruction>,
     )
 );
 
+named!(pub instruction_three<CompleteStr, AssemblerInstruction>,
+    do_parse!(
+        o: opcode_load >>
+        r1: register >>
+        r2: register >>
+        r3: register >>
+        (
+            AssemblerInstruction{
+                opcode: o,
+                operand1: Some(r1),
+                operand2: Some(r2),
+                operand3: Some(r3),
+            }
+        )
+    )
+);
+
 named!(pub instruction<CompleteStr, AssemblerInstruction>,
    do_parse!(
        ins: alt!(
@@ -134,6 +151,23 @@ mod tests {
                     operand1: None,
                     operand2: None,
                     operand3: None,
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_instruction_form_three() {
+        let result = instruction_three(CompleteStr("add $1 $2 $3"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: Token::Op { code: Opcode::ADD },
+                    operand1: Some(Token::Register { reg_num: 1 }),
+                    operand2: Some(Token::Register { reg_num: 2 }),
+                    operand3: Some(Token::Register { reg_num: 3 }),
                 }
             ))
         );
