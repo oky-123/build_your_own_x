@@ -47,7 +47,6 @@ impl VM {
         let mut is_done = false;
         while !is_done {
             is_done = self.execute_instruction();
-            println!("{}", is_done);
         }
     }
 
