@@ -8,6 +8,7 @@ pub struct VM {
     pub program: Vec<u8>, // u8 <= 256
     remainder: u32,
     equal_flag: bool,
+    heap: Vec<u8>,
 }
 
 impl VM {
@@ -18,6 +19,7 @@ impl VM {
             pc: 0,
             remainder: 0,
             equal_flag: false,
+            heap: vec![],
         }
     }
 
