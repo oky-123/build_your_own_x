@@ -76,7 +76,7 @@ pub struct Instruction {
 
 impl Instruction {
     pub fn new(opcode: Opcode) -> Self {
-        Instruction { opcode: opcode }
+        Instruction { opcode }
     }
 }
 

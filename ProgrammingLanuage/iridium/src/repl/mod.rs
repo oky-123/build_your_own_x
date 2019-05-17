@@ -1,7 +1,6 @@
 use crate::assembler::program_parsers::program;
 use crate::vm::VM;
 
-use nom::types::CompleteStr;
 use std;
 use std::io;
 use std::io::Write;
@@ -60,18 +59,24 @@ impl REPL {
                 ".pc" => {
                     println!("{}", self.vm.pc);
                 }
-                _ => {
-                    let parsed_program = program(CompleteStr(buffer));
-                    println!("{:?}", parsed_program);
-                    if !parsed_program.is_ok() {
-                        println!("Unable to parse input");
-                        continue;
-                    }
-                    let (_, result) = parsed_program.unwrap();
-                    let bytecode = result.to_bytes();
-                    println!("{:?}", bytecode);
-                    self.vm.add_bytes(bytecode);
+                ".run_once" => {
                     self.vm.run_once();
+                }
+                ".run" => {
+                    self.vm.run();
+                }
+                _ => {
+                    let program = match program(buffer.into()) {
+                        Ok((_, program)) => program,
+                        Err(e) => {
+                            println!("Unable to parse input");
+                            println!("{}", e);
+                            continue;
+                        }
+                    };
+
+                    self.vm.program.append(&mut program.to_bytes());
+                    // self.vm.run_once();
                 }
             }
         }
