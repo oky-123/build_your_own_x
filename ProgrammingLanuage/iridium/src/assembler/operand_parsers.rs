@@ -16,6 +16,7 @@ named!(pub integer_operand<CompleteStr, Token>,
 );
 
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
