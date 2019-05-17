@@ -19,6 +19,7 @@ pub enum Opcode {
     LTQ,
     JEQ,
     IGL,
+    ALOC,
 }
 
 impl From<u8> for Opcode {
@@ -40,6 +41,7 @@ impl From<u8> for Opcode {
             13 => return Opcode::GTQ,
             14 => return Opcode::LTQ,
             15 => return Opcode::JEQ,
+            16 => return Opcode::ALOC,
             _ => return Opcode::IGL,
         }
     }
@@ -64,6 +66,7 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("gt") => Opcode::GT,
             CompleteStr("lte") => Opcode::LTQ,
             CompleteStr("lt") => Opcode::LT,
+            CompleteStr("aloc") => Opcode::ALOC,
             _ => Opcode::IGL,
         }
     }

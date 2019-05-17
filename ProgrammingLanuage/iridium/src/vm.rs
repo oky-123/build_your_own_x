@@ -199,6 +199,11 @@ impl VM {
                     self.pc = value as usize;
                 }
             }
+            Opcode::ALOC => {
+                let bytes = self.registers[self.next_8_bits() as usize];
+                let new_end = self.heap.len() as i32 + bytes;
+                self.heap.resize(new_end as usize, 0);
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
@@ -393,5 +398,14 @@ mod tests {
 
         assert_eq!(test_vm.equal_flag, true);
         assert_eq!(test_vm.pc, 0);
+    }
+
+    #[test]
+    fn test_aloc_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1024;
+        test_vm.program = vec![16, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.heap.len(), 1024);
     }
 }
