@@ -20,29 +20,33 @@ pub enum Opcode {
     JEQ,
     IGL,
     ALOC,
+    INC,
+    DEC,
 }
 
 impl From<u8> for Opcode {
     fn from(v: u8) -> Self {
         match v {
-            0 => return Opcode::HLT,
-            1 => return Opcode::LOAD,
-            2 => return Opcode::ADD,
-            3 => return Opcode::SUB,
-            4 => return Opcode::MUL,
-            5 => return Opcode::DIV,
-            6 => return Opcode::JMP,
-            7 => return Opcode::JMPF,
-            8 => return Opcode::JMPB,
-            9 => return Opcode::EQ,
-            10 => return Opcode::NEQ,
-            11 => return Opcode::GT,
-            12 => return Opcode::LT,
-            13 => return Opcode::GTQ,
-            14 => return Opcode::LTQ,
-            15 => return Opcode::JEQ,
-            16 => return Opcode::ALOC,
-            _ => return Opcode::IGL,
+            0 => Opcode::HLT,
+            1 => Opcode::LOAD,
+            2 => Opcode::ADD,
+            3 => Opcode::SUB,
+            4 => Opcode::MUL,
+            5 => Opcode::DIV,
+            6 => Opcode::JMP,
+            7 => Opcode::JMPF,
+            8 => Opcode::JMPB,
+            9 => Opcode::EQ,
+            10 => Opcode::NEQ,
+            11 => Opcode::GT,
+            12 => Opcode::LT,
+            13 => Opcode::GTQ,
+            14 => Opcode::LTQ,
+            15 => Opcode::JEQ,
+            16 => Opcode::ALOC,
+            17 => Opcode::INC,
+            18 => Opcode::DEC,
+            _ => Opcode::IGL,
         }
     }
 }
@@ -67,6 +71,8 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("lte") => Opcode::LTQ,
             CompleteStr("lt") => Opcode::LT,
             CompleteStr("aloc") => Opcode::ALOC,
+            CompleteStr("inc") => Opcode::INC,
+            CompleteStr("dec") => Opcode::DEC,
             _ => Opcode::IGL,
         }
     }
