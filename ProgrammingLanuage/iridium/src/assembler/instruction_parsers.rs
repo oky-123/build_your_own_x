@@ -1,17 +1,18 @@
 use nom::multispace;
 use nom::types::CompleteStr;
 
+use crate::assembler::integer_parsers::integer;
 use crate::assembler::opcode_parsers::*;
-use crate::assembler::operand_parsers::integer_operand;
+use crate::assembler::operand_parsers::operand;
 use crate::assembler::register_parsers::register;
 use crate::assembler::Token;
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
-    opcode: Token,
-    operand1: Option<Token>,
-    operand2: Option<Token>,
-    operand3: Option<Token>,
+    pub opcode: Token,
+    pub operand1: Option<Token>,
+    pub operand2: Option<Token>,
+    pub operand3: Option<Token>,
 }
 
 impl AssemblerInstruction {
@@ -62,7 +63,7 @@ named!(pub instruction_one<CompleteStr, AssemblerInstruction>,
     do_parse!(
         o: opcode_load >>
         r: register >>
-        i: integer_operand >>
+        i: integer >>
         (
             AssemblerInstruction{
                 opcode: o,
