@@ -56,6 +56,17 @@ impl AssemblerInstruction {
             }
         };
     }
+
+    pub fn is_label(&self) -> bool {
+        return self.label.is_some();
+    }
+
+    pub fn label_name(&self) -> Option<String> {
+        if let Some(Token::LabelDeclaration { name }) = self.label {
+            Some(name);
+        }
+        None
+    }
 }
 
 named!(pub instruction_one<CompleteStr, AssemblerInstruction>,
