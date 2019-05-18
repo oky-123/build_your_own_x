@@ -3,6 +3,7 @@ use nom::types::CompleteStr;
 
 use crate::assembler::directive_parsers::directive;
 use crate::assembler::integer_parsers::integer;
+use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::operand;
 use crate::assembler::register_parsers::register;
@@ -167,10 +168,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::LOAD },
+                    opcode: Some(Token::Op { code: Opcode::LOAD }),
                     operand1: Some(Token::Register { reg_num: 0 }),
                     operand2: Some(Token::IntegerOperand { value: 100 }),
                     operand3: None,
+                    directive: None,
+                    label: None,
                 }
             ))
         );
@@ -184,10 +187,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::HLT },
+                    opcode: Some(Token::Op { code: Opcode::HLT }),
                     operand1: None,
                     operand2: None,
                     operand3: None,
+                    directive: None,
+                    label: None,
                 }
             ))
         );
@@ -201,10 +206,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::ADD },
+                    opcode: Some(Token::Op { code: Opcode::ADD }),
                     operand1: Some(Token::Register { reg_num: 1 }),
                     operand2: Some(Token::Register { reg_num: 2 }),
                     operand3: Some(Token::Register { reg_num: 3 }),
+                    directive: None,
+                    label: None,
                 }
             ))
         );
@@ -218,10 +225,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::HLT },
+                    opcode: Some(Token::Op { code: Opcode::HLT }),
                     operand1: None,
                     operand2: None,
                     operand3: None,
+                    directive: None,
+                    label: None,
                 }
             ))
         );
@@ -232,10 +241,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::LOAD },
+                    opcode: Some(Token::Op { code: Opcode::LOAD }),
                     operand1: Some(Token::Register { reg_num: 1 }),
                     operand2: Some(Token::IntegerOperand { value: 100 }),
                     operand3: None,
+                    directive: None,
+                    label: None,
                 }
             ))
         );
@@ -246,10 +257,12 @@ mod tests {
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: Token::Op { code: Opcode::ADD },
+                    opcode: Some(Token::Op { code: Opcode::ADD }),
                     operand1: Some(Token::Register { reg_num: 1 }),
                     operand2: Some(Token::Register { reg_num: 2 }),
                     operand3: Some(Token::Register { reg_num: 3 }),
+                    directive: None,
+                    label: None,
                 }
             ))
         );
