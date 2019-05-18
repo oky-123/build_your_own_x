@@ -1,14 +1,11 @@
-use nom::multispace;
 use nom::types::CompleteStr;
 
 use byteorder::{ByteOrder, LittleEndian};
 
 use crate::assembler::directive_parsers::directive;
-use crate::assembler::integer_parsers::integer;
 use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::operand;
-use crate::assembler::register_parsers::register;
 use crate::assembler::{SymbolTable, Token};
 
 #[derive(Debug, PartialEq)]
@@ -81,86 +78,10 @@ impl AssemblerInstruction {
     }
 }
 
-named!(pub instruction_one<CompleteStr, AssemblerInstruction>,
-    do_parse!(
-        o: opcode_load >>
-        r: register >>
-        i: integer >>
-        (
-            AssemblerInstruction{
-                opcode: Some(o),
-                operand1: Some(r),
-                operand2: Some(i),
-                operand3: None,
-                directive: None,
-                label: None,
-            }
-        )
-    )
-);
-
-named!(pub instruction_two<CompleteStr, AssemblerInstruction>,
-    do_parse!(
-        o: opcode_load >>
-        opt!(multispace) >>
-        (
-            AssemblerInstruction{
-                opcode: Some(o),
-                operand1: None,
-                operand2: None,
-                operand3: None,
-                directive: None,
-                label: None,
-            }
-        )
-    )
-);
-
-named!(pub instruction_three<CompleteStr, AssemblerInstruction>,
-    do_parse!(
-        o: opcode_load >>
-        r1: register >>
-        r2: register >>
-        r3: register >>
-        (
-            AssemblerInstruction{
-                opcode: Some(o),
-                operand1: Some(r1),
-                operand2: Some(r2),
-                operand3: Some(r3),
-                directive: None,
-                label: None,
-            }
-        )
-    )
-);
-
-named!(pub instruction_combined<CompleteStr, AssemblerInstruction>,
-    do_parse!(
-        l: opt!(label_declaration) >>
-        o: opcode_load >>
-        o1: opt!(operand) >>
-        o2: opt!(operand) >>
-        o3: opt!(operand) >>
-        (
-            AssemblerInstruction{
-                opcode: Some(o),
-                operand1: o1,
-                operand2: o2,
-                operand3: o3,
-                directive: None,
-                label: l,
-            }
-        )
-    )
-);
-
 named!(pub instruction<CompleteStr, AssemblerInstruction>,
    do_parse!(
        ins: alt!(
-           instruction_three |
-           instruction_one |
-           instruction_two
+           instruction_combined
        ) >> ( ins )
    )
 );
@@ -177,6 +98,28 @@ named!(pub instruction_with_directive<CompleteStr, AssemblerInstruction>,
     )
 );
 
+named!(pub instruction_combined<CompleteStr, AssemblerInstruction>,
+    do_parse!(
+        l: opt!(label_declaration) >>
+        o: opcode_load >>
+        o1: opt!(operand) >>
+        o2: opt!(operand) >>
+        o3: opt!(operand) >>
+        (
+            {
+                AssemblerInstruction{
+                    opcode: Some(o),
+                    label: l,
+                    directive: None,
+                    operand1: o1,
+                    operand2: o2,
+                    operand3: o3,
+                }
+            }
+        )
+    )
+);
+
 #[cfg(test)]
 mod tests {
 
@@ -185,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_form_one() {
-        let result = instruction_one(CompleteStr("load $0 #100\n"));
+        let result = instruction(CompleteStr("load $0 #100\n"));
         assert_eq!(
             result,
             Ok((
@@ -204,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_form_two() {
-        let result = instruction_two(CompleteStr("HLT"));
+        let result = instruction(CompleteStr("HLT"));
         assert_eq!(
             result,
             Ok((
@@ -223,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_form_three() {
-        let result = instruction_three(CompleteStr("add $1 $2 $3"));
+        let result = instruction(CompleteStr("add $1 $2 $3"));
         assert_eq!(
             result,
             Ok((
@@ -292,20 +235,38 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_instruction_with_direction() {
-        let result = instruction_with_directive(CompleteStr(".directive $1 $2 $3"));
+    fn test_parse_instruction_combined() {
+        let result = instruction_combined(CompleteStr("label: load $1 $2 $3"));
         assert_eq!(
             result,
             Ok((
                 CompleteStr(""),
                 AssemblerInstruction {
-                    opcode: None,
+                    opcode: Some(Token::Op { code: Opcode::LOAD }),
                     operand1: Some(Token::Register { reg_num: 1 }),
                     operand2: Some(Token::Register { reg_num: 2 }),
                     operand3: Some(Token::Register { reg_num: 3 }),
-                    directive: Some(Token::Directive {
-                        name: "directive".to_string()
+                    directive: None,
+                    label: Some(Token::LabelDeclaration {
+                        name: "label".to_string()
                     }),
+                }
+            ))
+        );
+
+        let result = instruction_combined(CompleteStr("jmp @label"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: Some(Token::Op { code: Opcode::JMP }),
+                    operand1: Some(Token::LabelUsage {
+                        name: "label".to_string()
+                    }),
+                    operand2: None,
+                    operand3: None,
+                    directive: None,
                     label: None,
                 }
             ))

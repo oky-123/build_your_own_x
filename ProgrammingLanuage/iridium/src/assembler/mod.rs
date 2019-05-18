@@ -160,12 +160,13 @@ mod tests {
     #[test]
     fn test_assemble_program() {
         let mut asm = Assembler::new();
+        // TODO jmpe @test
         let test_string =
-            "load $0 #100\nload $1 #1\nload $2 #0\ntest: inc $0\nneq $0 $2\njmpe @test\nhlt";
+            "load $0 #100\n load $1 #1\n load $2 #0\n test: inc $0\nneq $0 $2\n jmpe @test\n hlt";
         let program = asm.assemble(test_string).unwrap();
         let mut vm = VM::new();
-        assert_eq!(program.len(), 21);
+        assert_eq!(program.len(), 19);
         vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 21);
+        assert_eq!(vm.program.len(), 19);
     }
 }
