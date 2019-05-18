@@ -168,8 +168,8 @@ named!(pub instruction<CompleteStr, AssemblerInstruction>,
 named!(pub instruction_with_directive<CompleteStr, AssemblerInstruction>,
     do_parse!(
         ins: alt!(
-            instruction |
-            directive
+            directive |
+            instruction
         ) >>
         (
             ins
