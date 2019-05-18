@@ -290,4 +290,25 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn test_parse_instruction_with_direction() {
+        let result = instruction_with_directive(CompleteStr(".directive $1 $2 $3"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::Register { reg_num: 1 }),
+                    operand2: Some(Token::Register { reg_num: 2 }),
+                    operand3: Some(Token::Register { reg_num: 3 }),
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+    }
 }

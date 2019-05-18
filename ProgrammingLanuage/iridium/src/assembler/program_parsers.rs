@@ -1,6 +1,6 @@
 use nom::types::CompleteStr;
 
-use crate::assembler::instruction_parsers::{instruction, AssemblerInstruction};
+use crate::assembler::instruction_parsers::{instruction_with_directive, AssemblerInstruction};
 use crate::assembler::SymbolTable;
 
 #[derive(Debug, PartialEq)]
@@ -20,7 +20,7 @@ impl Program {
 
 named!(pub program<CompleteStr, Program>,
     do_parse!(
-        instructions: many1!(instruction) >>
+        instructions: many1!(instruction_with_directive) >>
         (
             Program {
                 instructions: instructions
@@ -40,7 +40,6 @@ mod tests {
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, CompleteStr(""));
         assert_eq!(1, p.instructions.len());
-        // TODO: Figure out an ergonomic way to test the AssemblerInstruction returned
     }
 
     #[test]
