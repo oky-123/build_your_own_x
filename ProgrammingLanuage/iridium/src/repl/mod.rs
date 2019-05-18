@@ -1,4 +1,5 @@
 use crate::assembler::program_parsers::program;
+use crate::assembler::Assembler;
 use crate::vm::VM;
 
 use std;
@@ -12,6 +13,7 @@ use nom::types::CompleteStr;
 pub struct REPL {
     command_buffer: Vec<String>,
     vm: VM,
+    asm: Assembler,
 }
 
 impl REPL {
@@ -19,6 +21,7 @@ impl REPL {
         REPL {
             vm: VM::new(),
             command_buffer: vec![],
+            asm: Assembler::new(),
         }
     }
 
@@ -88,7 +91,9 @@ impl REPL {
                             continue;
                         }
                     };
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm
+                        .program
+                        .append(&mut program.to_bytes(&self.asm.symbols));
                 }
                 _ => {
                     let program = match program(buffer.into()) {
@@ -100,7 +105,9 @@ impl REPL {
                         }
                     };
 
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm
+                        .program
+                        .append(&mut program.to_bytes(&self.asm.symbols));
                     // self.vm.run_once();
                 }
             }

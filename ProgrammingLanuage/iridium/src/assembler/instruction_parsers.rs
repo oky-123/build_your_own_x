@@ -1,13 +1,15 @@
 use nom::multispace;
 use nom::types::CompleteStr;
 
+use byteorder::{ByteOrder, LittleEndian};
+
 use crate::assembler::directive_parsers::directive;
 use crate::assembler::integer_parsers::integer;
 use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::operand;
 use crate::assembler::register_parsers::register;
-use crate::assembler::Token;
+use crate::assembler::{SymbolTable, Token};
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
@@ -20,7 +22,7 @@ pub struct AssemblerInstruction {
 }
 
 impl AssemblerInstruction {
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self, symbols: &SymbolTable) -> Vec<u8> {
         let mut results = vec![];
         if let Some(Token::Op { code }) = self.opcode {
             results.push(code as u8);
@@ -31,14 +33,14 @@ impl AssemblerInstruction {
 
         for operand in vec![&self.operand1, &self.operand2, &self.operand3] {
             if let Some(token) = operand {
-                AssemblerInstruction::extract_operand(token, &mut results)
+                AssemblerInstruction::extract_operand(token, &mut results, symbols)
             }
         }
 
         results
     }
 
-    fn extract_operand(t: &Token, results: &mut Vec<u8>) {
+    fn extract_operand(t: &Token, results: &mut Vec<u8>, symbols: &SymbolTable) {
         match t {
             Token::Register { reg_num } => {
                 results.push(*reg_num);
@@ -49,6 +51,16 @@ impl AssemblerInstruction {
                 let byte2 = converted >> 8;
                 results.push(byte2 as u8);
                 results.push(byte1 as u8);
+            }
+            Token::LabelUsage { name } => {
+                if let Some(value) = symbols.symbol_value(name) {
+                    let mut wtr = vec![];
+                    LittleEndian::write_u32(&mut wtr, value);
+                    results.push(wtr[0]);
+                    results.push(wtr[1]);
+                } else {
+                    println!("No value found for {:?}", name);
+                }
             }
             _ => {
                 println!("Opcode found in operand field");
@@ -62,7 +74,7 @@ impl AssemblerInstruction {
     }
 
     pub fn label_name(&self) -> Option<String> {
-        if let Some(Token::LabelDeclaration { name }) = self.label {
+        if let Some(Token::LabelDeclaration { name }) = &self.label {
             Some(name);
         }
         None
