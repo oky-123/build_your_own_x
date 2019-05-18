@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate nom;
+extern crate byteorder;
 
 pub mod assembler;
 pub mod instruction;

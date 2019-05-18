@@ -18,7 +18,6 @@ named!(directive_declaration<CompleteStr, Token>,
 named!(directive_combined<CompleteStr, AssemblerInstruction>,
     ws!(
         do_parse!(
-            tag!(".") >>
             name: directive_declaration >>
             o1: opt!(operand) >>
             o2: opt!(operand) >>
@@ -48,3 +47,89 @@ named!(pub directive<CompleteStr, AssemblerInstruction>,
         )
     )
 );
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_directive_declaration() {
+        let result = directive_declaration(CompleteStr(".directive"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                // AssemblerInstruction {
+                //     opcode: None,
+                //     operand1: None,
+                //     operand2: None,
+                //     operand3: None,
+                //directive: Some(
+                Token::Directive {
+                    name: "directive".to_string()
+                } //),
+                  //    label: None,
+                  //}
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_directive_combined() {
+        let result = directive_combined(CompleteStr(".directive $1 $2 $3"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::Register { reg_num: 1 }),
+                    operand2: Some(Token::Register { reg_num: 2 }),
+                    operand3: Some(Token::Register { reg_num: 3 }),
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+        let result = directive_combined(CompleteStr(".directive $1"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::Register { reg_num: 1 }),
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_directive() {
+        let result = directive(CompleteStr(".directive #1"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::IntegerOperand { value: 1 }),
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+    }
+}
