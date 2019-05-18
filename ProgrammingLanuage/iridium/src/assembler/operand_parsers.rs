@@ -1,18 +1,11 @@
-use nom::digit;
 use nom::types::CompleteStr;
 
+use crate::assembler::integer_parsers::integer;
+use crate::assembler::register_parsers::register;
 use crate::assembler::Token;
 
-named!(pub integer_operand<CompleteStr, Token>,
-    ws!(
-        do_parse!(
-            tag!("#") >>
-            reg_num: digit >>
-            (
-                Token::IntegerOperand{value: reg_num.parse::<i32>().unwrap()}
-            )
-        )
-    )
+named!(pub operand<CompleteStr, Token>,
+    alt!(register | integer)
 );
 
 mod tests {
@@ -20,16 +13,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_integer_operand() {
-        // Test a valid integer operand
-        let result = integer_operand(CompleteStr("#10"));
+    fn test_operand() {
+        let result = operand(CompleteStr("#10"));
         assert_eq!(result.is_ok(), true);
-        let (rest, value) = result.unwrap();
-        assert_eq!(rest, CompleteStr(""));
+        let (_, value) = result.unwrap();
         assert_eq!(value, Token::IntegerOperand { value: 10 });
 
         // Test an invalid one (missing the #)
-        let result = integer_operand(CompleteStr("10"));
-        assert_eq!(result.is_ok(), false);
+        let result = operand(CompleteStr("$10"));
+        let (_, value) = result.unwrap();
+        assert_eq!(value, Token::Register { reg_num: 10 });
     }
 }
