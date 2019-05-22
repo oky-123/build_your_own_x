@@ -8,7 +8,10 @@ pub mod repl;
 pub mod vm;
 
 fn main() {
-    println!("Hello, world!");
+    start_repl();
+}
+
+fn start_repl() {
     let mut repl = repl::REPL::new();
     repl.run();
 }
