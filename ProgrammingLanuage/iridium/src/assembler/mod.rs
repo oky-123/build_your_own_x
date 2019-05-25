@@ -170,7 +170,7 @@ impl Assembler {
         for byte in PIE_HEADER_PREFIX.into_iter() {
             header.push(byte.clone());
         }
-        while header.len() <= PIE_HEADER_LENGTH {
+        while header.len() < PIE_HEADER_LENGTH {
             header.push(0 as u8);
         }
         header
@@ -423,15 +423,15 @@ mod tests {
             ";
         let program = asm.assemble(test_string).unwrap();
         let mut vm = VM::new();
-        assert_eq!(program.len(), 17 + 65);
+        assert_eq!(program.len(), 17 + PIE_HEADER_LENGTH);
         vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 17 + 65);
+        assert_eq!(vm.program.len(), 17 + PIE_HEADER_LENGTH);
     }
 
     #[test]
     fn test_write_pie_header() {
         let mut asm = Assembler::new();
         let header = asm.write_pie_header();
-        assert_eq!(header.len(), 65);
+        assert_eq!(header.len(), PIE_HEADER_LENGTH);
     }
 }
