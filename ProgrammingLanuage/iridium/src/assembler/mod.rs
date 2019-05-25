@@ -78,15 +78,26 @@ pub enum AssemblerPhase {
     Second,
 }
 
-// #[derive(Debug)]
-// pub struct Assembler {
-//     phase: AssemblerPhase,
-// }
-
 #[derive(Debug)]
 pub struct Assembler {
+    /// Tracks which phase the assember is in
     pub phase: AssemblerPhase,
+    /// Symbol table for constants and variables
     pub symbols: SymbolTable,
+    /// The read-only data section constants are put in
+    pub ro: Vec<u8>,
+    /// The compiled bytecode generated from the assembly instructions
+    pub bytecode: Vec<u8>,
+    /// Tracks the current offset of the read-only section
+    ro_offset: u32,
+    /// A list of all the sections we've seen in the code
+    sections: Vec<AssemblerSection>,
+    /// The current section the assembler is in
+    current_section: Option<AssemblerSection>,
+    /// The current instruction the assembler is converting to bytecode
+    current_instruction: u32,
+    /// Any errors we find along the way. At the end, we'll present them to the user.
+    errors: Vec<AssemblerError>,
 }
 
 impl Assembler {
@@ -108,18 +119,47 @@ impl Assembler {
         header
     }
 
-    pub fn assemble(&mut self, raw: &str) -> Option<Vec<u8>> {
+    pub fn assemble(&mut self, raw: &str) -> Result<Vec<u8>, Vec<AssemblerError>> {
+        // Runs the raw program through our `nom` parser
         match program(CompleteStr(raw)) {
+            // If there were no parsing errors, we now have a `Vec<AssemblyInstructions>` to process.
+            // `remainder` _should_ be "".
+            // TODO: Add a check for `remainder`, make sure it is "".
             Ok((_remainder, program)) => {
+                // First get the header so we can smush it into the bytecode later
                 let mut assembled_program = self.write_pie_header();
+
+                // Start processing the AssembledInstructions. This is the first pass of our two-pass assembler.
+                // We pass a read-only reference down to another function.
                 self.process_first_phase(&program);
+
+                // If we accumulated any errors in the first pass, return them and don't try to do the second pass
+                if !self.errors.is_empty() {
+                    // TODO: Can we avoid a clone here?
+                    return Err(self.errors.clone());
+                };
+
+                // Make sure that we have at least one data section and one code section
+                if self.sections.len() != 2 {
+                    // TODO: Detail out which one(s) are missing
+                    println!("Did not find at least two sections.");
+                    self.errors.push(AssemblerError::InsufficientSections);
+                    // TODO: Can we avoid a clone here?
+                    return Err(self.errors.clone());
+                }
+                // Run the second pass, which translates opcodes and associated operands into the bytecode
                 let mut body = self.process_second_phase(&program);
+
+                // Merge the header with the populated body vector
                 assembled_program.append(&mut body);
-                Some(assembled_program)
+                Ok(assembled_program)
             }
+            // If there were parsing errors, bad syntax, etc, this arm is run
             Err(e) => {
-                println!("There was an error assembling the code: {:?}", e);
-                None
+                println!("There was an error parsing the code: {:?}", e);
+                Err(vec![AssemblerError::ParseError {
+                    error: e.to_string(),
+                }])
             }
         }
     }
