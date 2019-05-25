@@ -2,6 +2,7 @@ use nom::alpha1;
 use nom::types::CompleteStr;
 
 use crate::assembler::instruction_parsers::AssemblerInstruction;
+use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::operand_parsers::operand;
 use crate::assembler::Token;
 
@@ -18,6 +19,7 @@ named!(directive_declaration<CompleteStr, Token>,
 named!(directive_combined<CompleteStr, AssemblerInstruction>,
     ws!(
         do_parse!(
+            l: opt!(label_declaration) >>
             name: directive_declaration >>
             o1: opt!(operand) >>
             o2: opt!(operand) >>
@@ -26,7 +28,7 @@ named!(directive_combined<CompleteStr, AssemblerInstruction>,
                 AssemblerInstruction{
                     opcode: None,
                     directive: Some(name),
-                    label: None,
+                    label: l,
                     operand1: o1,
                     operand2: o2,
                     operand3: o3,
@@ -76,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_parse_directive_combined() {
-        let result = directive_combined(CompleteStr(".directive $1 $2 $3"));
+        let result = directive_combined(CompleteStr("label: .directive $1 $2 $3"));
         assert_eq!(
             result,
             Ok((
@@ -89,7 +91,9 @@ mod tests {
                     directive: Some(Token::Directive {
                         name: "directive".to_string()
                     }),
-                    label: None,
+                    label: Some(Token::LabelDeclaration {
+                        name: "label".to_string()
+                    }),
                 }
             ))
         );
@@ -131,5 +135,30 @@ mod tests {
                 }
             ))
         );
+    }
+
+    #[test]
+    fn test_string_directive() {
+        let result = directive_combined(CompleteStr("test: .asciiz 'Hello'"));
+        assert_eq!(result.is_ok(), true);
+        let (_, directive) = result.unwrap();
+
+        // Yes, this is the what the result should be
+        let correct_instruction = AssemblerInstruction {
+            opcode: None,
+            label: Some(Token::LabelDeclaration {
+                name: "test".to_string(),
+            }),
+            directive: Some(Token::Directive {
+                name: "asciiz".to_string(),
+            }),
+            operand1: Some(Token::IrString {
+                name: "Hello".to_string(),
+            }),
+            operand2: None,
+            operand3: None,
+        };
+
+        assert_eq!(directive, correct_instruction);
     }
 }
