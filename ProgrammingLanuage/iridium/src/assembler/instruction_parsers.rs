@@ -72,9 +72,34 @@ impl AssemblerInstruction {
 
     pub fn label_name(&self) -> Option<String> {
         if let Some(Token::LabelDeclaration { name }) = &self.label {
-            Some(name);
+            Some(name.to_string());
         }
         None
+    }
+
+    pub fn is_directive(&self) -> bool {
+        return self.directive.is_some();
+    }
+
+    pub fn directive_name(&self) -> Option<String> {
+        if let Some(Token::Directive { name }) = &self.directive {
+            return Some(name.to_string());
+        }
+        None
+    }
+
+    pub fn has_operands(&self) -> bool {
+        return self.operand1.is_some();
+    }
+
+    pub fn get_string_constant(&self) -> Option<String> {
+        match &self.operand1 {
+            Some(d) => match d {
+                Token::IrString { name } => Some(name.to_string()),
+                _ => None,
+            },
+            None => None,
+        }
     }
 }
 
@@ -260,5 +285,27 @@ mod tests {
                 }
             ))
         );
+
+        let result = instruction(CompleteStr(".directive"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: None,
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+
+        if let Ok((_, instruction)) = result {
+            assert_eq!(instruction.directive_name(), Some("directive".to_string()));
+        }
     }
 }
