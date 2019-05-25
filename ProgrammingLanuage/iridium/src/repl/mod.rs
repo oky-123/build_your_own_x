@@ -11,9 +11,9 @@ use std::path::Path;
 use nom::types::CompleteStr;
 
 pub struct REPL {
-    command_buffer: Vec<String>,
-    vm: VM,
-    asm: Assembler,
+    pub command_buffer: Vec<String>,
+    pub vm: VM,
+    pub asm: Assembler,
 }
 
 impl REPL {

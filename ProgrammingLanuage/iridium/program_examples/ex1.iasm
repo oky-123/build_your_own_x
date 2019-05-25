@@ -1,1 +1,3 @@
+.data
+.code
 load $1 #100

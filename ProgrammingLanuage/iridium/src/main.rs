@@ -28,7 +28,7 @@ fn main() {
                 Ok(p) => {
                     vm.add_bytes(p);
                     vm.run();
-                    std::process::exit(0);
+                    resume_repl(vm, asm);
                 }
                 _ => {}
             }
@@ -37,11 +37,17 @@ fn main() {
             start_repl();
         }
     }
-    start_repl();
 }
 
 fn start_repl() {
     let mut repl = repl::REPL::new();
+    repl.run();
+}
+
+fn resume_repl(vm: vm::VM, asm: assembler::Assembler) {
+    let mut repl = repl::REPL::new();
+    repl.vm = vm;
+    repl.asm = asm;
     repl.run();
 }
 
