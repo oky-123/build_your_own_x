@@ -16,7 +16,7 @@ named!(directive_declaration<CompleteStr, Token>,
   )
 );
 
-named!(directive_combined<CompleteStr, AssemblerInstruction>,
+named!(pub directive_combined<CompleteStr, AssemblerInstruction>,
     ws!(
         do_parse!(
             l: opt!(label_declaration) >>

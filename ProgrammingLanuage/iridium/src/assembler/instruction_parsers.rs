@@ -2,6 +2,7 @@ use nom::types::CompleteStr;
 
 use byteorder::{ByteOrder, LittleEndian};
 
+use crate::assembler::directive_parsers::directive_combined;
 use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::operand;
@@ -80,7 +81,8 @@ impl AssemblerInstruction {
 named!(pub instruction<CompleteStr, AssemblerInstruction>,
    do_parse!(
        ins: alt!(
-           instruction_combined
+           instruction_combined |
+           directive_combined
        ) >> ( ins )
    )
 );
