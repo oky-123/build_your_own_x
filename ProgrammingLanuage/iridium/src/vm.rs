@@ -1,4 +1,5 @@
 use super::instruction::*;
+use crate::assembler::{PIE_HEADER_LENGTH, PIE_HEADER_PREFIX};
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -11,6 +12,18 @@ pub struct VM {
     heap: Vec<u8>,
 }
 
+pub fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
+    let mut prepension = vec![];
+    for byte in PIE_HEADER_PREFIX.into_iter() {
+        prepension.push(byte.clone());
+    }
+    while prepension.len() <= PIE_HEADER_LENGTH {
+        prepension.push(0);
+    }
+    prepension.append(&mut b);
+    prepension
+}
+
 impl VM {
     pub fn new() -> VM {
         VM {
@@ -21,6 +34,13 @@ impl VM {
             equal_flag: false,
             heap: vec![],
         }
+    }
+
+    pub fn verify_header(&self) -> bool {
+        if self.program[0..4] != PIE_HEADER_PREFIX {
+            return false;
+        }
+        true
     }
 
     pub fn init_registers(&mut self, vec: [i32; 32]) {
@@ -46,9 +66,14 @@ impl VM {
     }
 
     pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+        if self.verify_header() {
+            self.pc += 65;
+            let mut is_done = false;
+            while !is_done {
+                is_done = self.execute_instruction();
+            }
+        } else {
+            println!("There is no pie header");
         }
     }
 
@@ -240,8 +265,9 @@ mod tests {
         let mut test_vm = VM::new();
         let test_bytes = vec![0, 0, 0, 0];
         test_vm.program = test_bytes;
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 66);
     }
 
     #[test]
@@ -249,8 +275,9 @@ mod tests {
         let mut test_vm = VM::new();
         let test_bytes = vec![200, 0, 0, 0];
         test_vm.program = test_bytes;
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 66);
     }
 
     #[test]
@@ -271,6 +298,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![3, 3, 1, 4]; // 3 - 1 = 2
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
 
         assert_eq!(test_vm.registers[4], 2);
@@ -285,6 +313,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![4, 3, 4, 5]; // 3 * 4 = 12
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
 
         assert_eq!(test_vm.registers[5], 12);
@@ -299,6 +328,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![5, 3, 2, 3]; // 3 / 2 = 1 remainder 1
+        test_vm.program = prepend_header(test_vm.program);
         assert_eq!(test_vm.registers[3], 3);
         assert_eq!(test_vm.registers[2], 2);
         test_vm.run();
