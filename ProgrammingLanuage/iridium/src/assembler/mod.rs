@@ -183,6 +183,7 @@ impl Assembler {
             // `remainder` _should_ be "".
             // TODO: Add a check for `remainder`, make sure it is "".
             Ok((_remainder, program)) => {
+                println!("{:?}", program);
                 // Start processing the AssembledInstructions. This is the first pass of our two-pass assembler.
                 // We pass a read-only reference down to another function.
                 self.process_first_phase(&program);

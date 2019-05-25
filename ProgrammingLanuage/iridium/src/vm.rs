@@ -249,7 +249,7 @@ impl VM {
                 let result = std::str::from_utf8(&slice[starting_offset..ending_offset]);
                 match result {
                     Ok(s) => {
-                        print!("{}", s);
+                        print!("{}\n", s);
                     }
                     Err(e) => println!("Error decoding string for prts instruction: {:#?}", e),
                 };

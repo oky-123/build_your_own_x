@@ -1,3 +1,4 @@
 .data
+label: .asciiz 'string'
 .code
-load $1 #100
+prts @label

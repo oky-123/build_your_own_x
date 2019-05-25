@@ -50,10 +50,11 @@ impl AssemblerInstruction {
             }
             Token::LabelUsage { name } => {
                 if let Some(value) = symbols.symbol_value(name) {
-                    let mut wtr = vec![];
-                    LittleEndian::write_u32(&mut wtr, value);
-                    results.push(wtr[0]);
-                    results.push(wtr[1]);
+                    let converted = value as u16;
+                    let byte1 = converted;
+                    let byte2 = converted >> 8;
+                    results.push(byte2 as u8);
+                    results.push(byte1 as u8);
                 } else {
                     println!("No value found for {:?}", name);
                 }

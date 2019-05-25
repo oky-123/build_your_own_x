@@ -63,6 +63,24 @@ impl REPL {
                     println!("{:?}", self.vm.ro_data);
                     println!("End of ro Listing");
                 }
+                ".symbols" => {
+                    println!("Listing symbols of VM:");
+                    println!("{:?}", self.asm.symbols);
+                    println!("End of symbols Listing");
+                }
+                ".find_symbol" => {
+                    let mut b = String::new();
+                    let _stdin = io::stdin();
+                    print!("input label name: ");
+                    io::stdout().flush().expect("Unable to flush stdout");
+                    // Look at string from user
+                    _stdin
+                        .read_line(&mut b)
+                        .expect("Unable to read line from user");
+                    let b = b.trim();
+
+                    println!("{}", self.asm.symbols.symbol_value(b).unwrap())
+                }
                 ".registers" => {
                     println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm.registers);
@@ -102,7 +120,10 @@ impl REPL {
                 }
                 _ => {
                     let program = match program(buffer.into()) {
-                        Ok((_, program)) => program,
+                        Ok((_, program)) => {
+                            println!("{:?}", program);
+                            program
+                        }
                         Err(e) => {
                             println!("Unable to parse input");
                             println!("{}", e);

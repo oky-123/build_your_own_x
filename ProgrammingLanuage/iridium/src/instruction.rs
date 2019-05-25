@@ -18,11 +18,11 @@ pub enum Opcode {
     GTQ,
     LTQ,
     JEQ,
-    IGL,
     ALOC,
     INC,
     DEC,
     PRTS,
+    IGL,
 }
 
 impl From<u8> for Opcode {
