@@ -183,8 +183,15 @@ mod tests {
             "load $0 #100\n load $1 #1\n load $2 #0\n test: inc $0\nneq $0 $2\n jmpe @test\n hlt";
         let program = asm.assemble(test_string).unwrap();
         let mut vm = VM::new();
-        assert_eq!(program.len(), 19);
+        assert_eq!(program.len(), 19 + 65);
         vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 19);
+        assert_eq!(vm.program.len(), 19 + 65);
+    }
+
+    #[test]
+    fn test_write_pie_header() {
+        let mut asm = Assembler::new();
+        let header = asm.write_pie_header();
+        assert_eq!(header.len(), 65);
     }
 }
