@@ -1,6 +1,7 @@
 use nom::types::CompleteStr;
 
 use crate::assembler::integer_parsers::integer;
+use crate::assembler::irstring_parsers::irstring;
 use crate::assembler::label_parsers::label_usage;
 use crate::assembler::register_parsers::register;
 use crate::assembler::Token;
@@ -9,7 +10,8 @@ named!(pub operand<CompleteStr, Token>,
     alt!(
         register |
         integer |
-        label_usage
+        label_usage |
+        irstring
     )
 );
 
@@ -28,5 +30,14 @@ mod tests {
         let result = operand(CompleteStr("$10"));
         let (_, value) = result.unwrap();
         assert_eq!(value, Token::Register { reg_num: 10 });
+
+        let result = operand(CompleteStr("'10'"));
+        let (_, value) = result.unwrap();
+        assert_eq!(
+            value,
+            Token::IrString {
+                name: "10".to_string()
+            }
+        );
     }
 }

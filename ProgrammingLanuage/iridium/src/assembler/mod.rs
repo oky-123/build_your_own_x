@@ -5,6 +5,7 @@ use nom::types::CompleteStr;
 pub mod directive_parsers;
 pub mod instruction_parsers;
 pub mod integer_parsers;
+pub mod irstring_parsers;
 pub mod label_parsers;
 pub mod opcode_parsers;
 pub mod operand_parsers;
@@ -22,6 +23,7 @@ pub enum Token {
     LabelDeclaration { name: String },
     LabelUsage { name: String },
     Directive { name: String },
+    IrString { name: String },
 }
 
 #[derive(Debug)]
