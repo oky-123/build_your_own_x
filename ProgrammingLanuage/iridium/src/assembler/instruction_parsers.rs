@@ -74,7 +74,6 @@ impl AssemblerInstruction {
             Some(Token::LabelDeclaration { name }) => Some(name.to_string()),
             _ => None,
         };
-        None
     }
 
     pub fn is_directive(&self) -> bool {
@@ -86,6 +85,10 @@ impl AssemblerInstruction {
             return Some(name.to_string());
         }
         None
+    }
+
+    pub fn is_opcode(&self) -> bool {
+        return self.opcode.is_some();
     }
 
     pub fn has_operands(&self) -> bool {

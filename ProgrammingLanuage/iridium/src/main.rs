@@ -24,6 +24,7 @@ fn main() {
             let mut asm = assembler::Assembler::new();
             let mut vm = vm::VM::new();
             let program = asm.assemble(&program);
+            vm.ro_data = asm.ro.clone();
             match program {
                 Ok(p) => {
                     vm.add_bytes(p);

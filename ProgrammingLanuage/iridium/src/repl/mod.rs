@@ -58,6 +58,11 @@ impl REPL {
                     }
                     println!("End of Program Listing");
                 }
+                ".ro" => {
+                    println!("Listing ro of VM:");
+                    println!("{:?}", self.vm.ro_data);
+                    println!("End of ro Listing");
+                }
                 ".registers" => {
                     println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm.registers);

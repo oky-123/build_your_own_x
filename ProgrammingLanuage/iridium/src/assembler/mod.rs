@@ -364,29 +364,22 @@ impl Assembler {
 
     // Build program(byte code)
     fn process_second_phase(&mut self, p: &Program) -> Vec<u8> {
+        self.current_instruction = 0;
         let mut program = vec![];
         for i in &p.instructions {
-            let mut bytes = i.to_bytes(&self.symbols);
-            program.append(&mut bytes);
+            if i.is_opcode() {
+                let mut bytes = i.to_bytes(&self.symbols);
+                program.append(&mut bytes);
+            }
+            if i.is_directive() {
+                // In this phase, we can have directives but of different types than we care about in the first pass. The Directive itself can check which pass the Assembler
+                // is in and decide what to do about it
+                self.process_directive(i);
+            }
+            self.current_instruction += 1
         }
         program
     }
-
-    // fn extract_labels(&mut self, p: &Program) {
-    //     let mut c = 0;
-    //     for i in &p.instructions {
-    //         if i.is_label() {
-    //             match i.label_name() {
-    //                 Some(name) => {
-    //                     let symbol = Symbol::new(name, SymbolType::Label, c);
-    //                     self.symbols.add_symbol(symbol);
-    //                 }
-    //                 None => {}
-    //             };
-    //         }
-    //         c += 4;
-    //     }
-    // }
 }
 
 #[cfg(test)]

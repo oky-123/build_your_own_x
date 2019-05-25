@@ -10,6 +10,7 @@ pub struct VM {
     remainder: u32,
     equal_flag: bool,
     heap: Vec<u8>,
+    pub ro_data: Vec<u8>,
 }
 
 pub fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
@@ -17,7 +18,7 @@ pub fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
     for byte in PIE_HEADER_PREFIX.into_iter() {
         prepension.push(byte.clone());
     }
-    while prepension.len() <= PIE_HEADER_LENGTH {
+    while prepension.len() < PIE_HEADER_LENGTH {
         prepension.push(0);
     }
     prepension.append(&mut b);
@@ -33,6 +34,7 @@ impl VM {
             remainder: 0,
             equal_flag: false,
             heap: vec![],
+            ro_data: vec![],
         }
     }
 
@@ -67,7 +69,7 @@ impl VM {
 
     pub fn run(&mut self) {
         if self.verify_header() {
-            self.pc += 65;
+            self.pc += PIE_HEADER_LENGTH;
             let mut is_done = false;
             while !is_done {
                 is_done = self.execute_instruction();
@@ -237,6 +239,21 @@ impl VM {
                 let register = self.next_8_bits() as usize;
                 self.registers[register] -= 1;
             }
+            Opcode::PRTS => {
+                let starting_offset = self.next_16_bits() as usize;
+                let mut ending_offset = starting_offset;
+                let slice = self.ro_data.as_slice();
+                while slice[ending_offset] != 0 {
+                    ending_offset += 1;
+                }
+                let result = std::str::from_utf8(&slice[starting_offset..ending_offset]);
+                match result {
+                    Ok(s) => {
+                        print!("{}", s);
+                    }
+                    Err(e) => println!("Error decoding string for prts instruction: {:#?}", e),
+                };
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
@@ -267,7 +284,7 @@ mod tests {
         test_vm.program = test_bytes;
         test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 66);
+        assert_eq!(test_vm.pc, 1 + PIE_HEADER_LENGTH);
     }
 
     #[test]
@@ -277,7 +294,7 @@ mod tests {
         test_vm.program = test_bytes;
         test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 66);
+        assert_eq!(test_vm.pc, 1 + PIE_HEADER_LENGTH);
     }
 
     #[test]
