@@ -25,7 +25,6 @@ impl AssemblerInstruction {
             results.push(code as u8);
         } else {
             println!("Non-opcode found in opcode field");
-            std::process::exit(1);
         }
 
         for operand in vec![&self.operand1, &self.operand2, &self.operand3] {
@@ -71,9 +70,10 @@ impl AssemblerInstruction {
     }
 
     pub fn label_name(&self) -> Option<String> {
-        if let Some(Token::LabelDeclaration { name }) = &self.label {
-            Some(name.to_string());
-        }
+        return match &self.label {
+            Some(Token::LabelDeclaration { name }) => Some(name.to_string()),
+            _ => None,
+        };
         None
     }
 
@@ -306,6 +306,32 @@ mod tests {
 
         if let Ok((_, instruction)) = result {
             assert_eq!(instruction.directive_name(), Some("directive".to_string()));
+        }
+
+        let result = instruction(CompleteStr("label: .asciiz 'string'"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::IrString {
+                        name: "string".to_string()
+                    }),
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "asciiz".to_string()
+                    }),
+                    label: Some(Token::LabelDeclaration {
+                        name: "label".to_string()
+                    }),
+                }
+            ))
+        );
+
+        if let Ok((_, instruction)) = result {
+            assert_eq!(instruction.label_name(), Some("label".to_string()));
         }
     }
 }

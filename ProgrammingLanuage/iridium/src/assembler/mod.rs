@@ -252,6 +252,7 @@ impl Assembler {
     /// hello: .asciiz 'Hello'
     fn process_label_declaration(&mut self, i: &AssemblerInstruction) {
         // Check if the label is None or String
+        println!("{:?}", i.label_name());
         let name = match i.label_name() {
             Some(name) => name,
             None => {
@@ -277,7 +278,6 @@ impl Assembler {
 
     fn process_directive(&mut self, i: &AssemblerInstruction) {
         // First let’s make sure we have a parseable nae
-        println!("{:?}", i.directive_name());
         let directive_name = match i.directive_name() {
             Some(name) => name,
             None => {
@@ -372,21 +372,21 @@ impl Assembler {
         program
     }
 
-    fn extract_labels(&mut self, p: &Program) {
-        let mut c = 0;
-        for i in &p.instructions {
-            if i.is_label() {
-                match i.label_name() {
-                    Some(name) => {
-                        let symbol = Symbol::new(name, SymbolType::Label, c);
-                        self.symbols.add_symbol(symbol);
-                    }
-                    None => {}
-                };
-            }
-            c += 4;
-        }
-    }
+    // fn extract_labels(&mut self, p: &Program) {
+    //     let mut c = 0;
+    //     for i in &p.instructions {
+    //         if i.is_label() {
+    //             match i.label_name() {
+    //                 Some(name) => {
+    //                     let symbol = Symbol::new(name, SymbolType::Label, c);
+    //                     self.symbols.add_symbol(symbol);
+    //                 }
+    //                 None => {}
+    //             };
+    //         }
+    //         c += 4;
+    //     }
+    // }
 }
 
 #[cfg(test)]
@@ -412,7 +412,6 @@ mod tests {
     #[test]
     fn test_assemble_program() {
         let mut asm = Assembler::new();
-        // TODO jmpe @test
         let test_string = r"
             .data
             .code
@@ -421,14 +420,12 @@ mod tests {
             load $2 #0
             test: inc $0
             neq $0 $2
-            jmpe @test
-            hlt
             ";
         let program = asm.assemble(test_string).unwrap();
         let mut vm = VM::new();
-        assert_eq!(program.len(), 19 + 65);
+        assert_eq!(program.len(), 17 + 65);
         vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 19 + 65);
+        assert_eq!(vm.program.len(), 17 + 65);
     }
 
     #[test]
