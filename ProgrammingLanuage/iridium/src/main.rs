@@ -1,9 +1,11 @@
 #[macro_use]
 extern crate nom;
 extern crate byteorder;
-
+#[macro_use]
+extern crate log;
 #[macro_use]
 extern crate clap;
+extern crate env_logger;
 
 pub mod assembler;
 pub mod instruction;
@@ -15,6 +17,8 @@ use std::fs::{read_to_string, File};
 use std::path::Path;
 
 fn main() {
+    env_logger::init();
+    info!("Starting logging!");
     let yaml = load_yaml!("../cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
     let target_file = matches.value_of("INPUT_FILE");

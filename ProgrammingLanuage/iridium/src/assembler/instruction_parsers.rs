@@ -1,7 +1,5 @@
 use nom::types::CompleteStr;
 
-use byteorder::{ByteOrder, LittleEndian};
-
 use crate::assembler::directive_parsers::directive_combined;
 use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
@@ -61,7 +59,6 @@ impl AssemblerInstruction {
             }
             _ => {
                 println!("Opcode found in operand field");
-                std::process::exit(1);
             }
         };
     }
