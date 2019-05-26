@@ -183,7 +183,7 @@ impl Assembler {
             // `remainder` _should_ be "".
             // TODO: Add a check for `remainder`, make sure it is "".
             Ok((_remainder, program)) => {
-                println!("{:?}", program);
+                // println!("{:?}", program);
                 // Start processing the AssembledInstructions. This is the first pass of our two-pass assembler.
                 // We pass a read-only reference down to another function.
                 self.process_first_phase(&program);
@@ -253,7 +253,7 @@ impl Assembler {
     /// hello: .asciiz 'Hello'
     fn process_label_declaration(&mut self, i: &AssemblerInstruction) {
         // Check if the label is None or String
-        println!("{:?}", i.label_name());
+        // println!("{:?}", i.label_name());
         let name = match i.label_name() {
             Some(name) => name,
             None => {

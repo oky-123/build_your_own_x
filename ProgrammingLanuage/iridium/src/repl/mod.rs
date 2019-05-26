@@ -134,7 +134,7 @@ impl REPL {
                     self.vm
                         .program
                         .append(&mut program.to_bytes(&self.asm.symbols));
-                    // self.vm.run_once();
+                    self.vm.run_once();
                 }
             }
         }
