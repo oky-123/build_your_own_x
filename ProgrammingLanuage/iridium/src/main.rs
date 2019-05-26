@@ -10,6 +10,7 @@ extern crate env_logger;
 pub mod assembler;
 pub mod instruction;
 pub mod repl;
+pub mod scheduler;
 pub mod vm;
 
 use clap::App;

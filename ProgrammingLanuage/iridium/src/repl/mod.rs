@@ -104,8 +104,13 @@ impl REPL {
                         .expect("Unable to read line from user");
                     let tmp = tmp.trim();
                     let filename = Path::new(&tmp);
-                    let contents =
-                        read_to_string(filename).expect("There was an error reading from the file");
+                    let contents = match read_to_string(filename) {
+                        Ok(f) => f,
+                        Err(e) => {
+                            println!("There was an error opening that file: {:?}", e);
+                            continue;
+                        }
+                    };
                     let program = match program(CompleteStr(&contents)) {
                         // Rusts pattern matching is pretty powerful an can even be nested
                         Ok((_, program)) => program,
