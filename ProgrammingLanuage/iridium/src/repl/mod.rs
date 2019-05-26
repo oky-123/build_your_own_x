@@ -11,9 +11,9 @@ use std::path::Path;
 use nom::types::CompleteStr;
 
 pub struct REPL {
-    command_buffer: Vec<String>,
-    vm: VM,
-    asm: Assembler,
+    pub command_buffer: Vec<String>,
+    pub vm: VM,
+    pub asm: Assembler,
 }
 
 impl REPL {
@@ -58,6 +58,29 @@ impl REPL {
                     }
                     println!("End of Program Listing");
                 }
+                ".ro" => {
+                    println!("Listing ro of VM:");
+                    println!("{:?}", self.vm.ro_data);
+                    println!("End of ro Listing");
+                }
+                ".symbols" => {
+                    println!("Listing symbols of VM:");
+                    println!("{:?}", self.asm.symbols);
+                    println!("End of symbols Listing");
+                }
+                ".find_symbol" => {
+                    let mut b = String::new();
+                    let _stdin = io::stdin();
+                    print!("input label name: ");
+                    io::stdout().flush().expect("Unable to flush stdout");
+                    // Look at string from user
+                    _stdin
+                        .read_line(&mut b)
+                        .expect("Unable to read line from user");
+                    let b = b.trim();
+
+                    println!("{}", self.asm.symbols.symbol_value(b).unwrap())
+                }
                 ".registers" => {
                     println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm.registers);
@@ -97,7 +120,10 @@ impl REPL {
                 }
                 _ => {
                     let program = match program(buffer.into()) {
-                        Ok((_, program)) => program,
+                        Ok((_, program)) => {
+                            println!("{:?}", program);
+                            program
+                        }
                         Err(e) => {
                             println!("Unable to parse input");
                             println!("{}", e);
@@ -108,7 +134,7 @@ impl REPL {
                     self.vm
                         .program
                         .append(&mut program.to_bytes(&self.asm.symbols));
-                    // self.vm.run_once();
+                    self.vm.run_once();
                 }
             }
         }

@@ -1,4 +1,5 @@
 use super::instruction::*;
+use crate::assembler::{PIE_HEADER_LENGTH, PIE_HEADER_PREFIX};
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -9,6 +10,19 @@ pub struct VM {
     remainder: u32,
     equal_flag: bool,
     heap: Vec<u8>,
+    pub ro_data: Vec<u8>,
+}
+
+pub fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
+    let mut prepension = vec![];
+    for byte in PIE_HEADER_PREFIX.into_iter() {
+        prepension.push(byte.clone());
+    }
+    while prepension.len() < PIE_HEADER_LENGTH {
+        prepension.push(0);
+    }
+    prepension.append(&mut b);
+    prepension
 }
 
 impl VM {
@@ -20,7 +34,15 @@ impl VM {
             remainder: 0,
             equal_flag: false,
             heap: vec![],
+            ro_data: vec![],
         }
+    }
+
+    pub fn verify_header(&self) -> bool {
+        if self.program[0..4] != PIE_HEADER_PREFIX {
+            return false;
+        }
+        true
     }
 
     pub fn init_registers(&mut self, vec: [i32; 32]) {
@@ -46,9 +68,14 @@ impl VM {
     }
 
     pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+        if self.verify_header() {
+            self.pc += PIE_HEADER_LENGTH;
+            let mut is_done = false;
+            while !is_done {
+                is_done = self.execute_instruction();
+            }
+        } else {
+            println!("There is no pie header");
         }
     }
 
@@ -212,6 +239,21 @@ impl VM {
                 let register = self.next_8_bits() as usize;
                 self.registers[register] -= 1;
             }
+            Opcode::PRTS => {
+                let starting_offset = self.next_16_bits() as usize;
+                let mut ending_offset = starting_offset;
+                let slice = self.ro_data.as_slice();
+                while slice[ending_offset] != 0 {
+                    ending_offset += 1;
+                }
+                let result = std::str::from_utf8(&slice[starting_offset..ending_offset]);
+                match result {
+                    Ok(s) => {
+                        print!("{}\n", s);
+                    }
+                    Err(e) => println!("Error decoding string for prts instruction: {:#?}", e),
+                };
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 return true;
@@ -240,8 +282,9 @@ mod tests {
         let mut test_vm = VM::new();
         let test_bytes = vec![0, 0, 0, 0];
         test_vm.program = test_bytes;
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 1 + PIE_HEADER_LENGTH);
     }
 
     #[test]
@@ -249,8 +292,9 @@ mod tests {
         let mut test_vm = VM::new();
         let test_bytes = vec![200, 0, 0, 0];
         test_vm.program = test_bytes;
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 1 + PIE_HEADER_LENGTH);
     }
 
     #[test]
@@ -271,6 +315,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![3, 3, 1, 4]; // 3 - 1 = 2
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
 
         assert_eq!(test_vm.registers[4], 2);
@@ -285,6 +330,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![4, 3, 4, 5]; // 3 * 4 = 12
+        test_vm.program = prepend_header(test_vm.program);
         test_vm.run();
 
         assert_eq!(test_vm.registers[5], 12);
@@ -299,6 +345,7 @@ mod tests {
         }
         test_vm.init_registers(array);
         test_vm.program = vec![5, 3, 2, 3]; // 3 / 2 = 1 remainder 1
+        test_vm.program = prepend_header(test_vm.program);
         assert_eq!(test_vm.registers[3], 3);
         assert_eq!(test_vm.registers[2], 2);
         test_vm.run();

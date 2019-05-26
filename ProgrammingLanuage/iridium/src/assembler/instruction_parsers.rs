@@ -2,7 +2,7 @@ use nom::types::CompleteStr;
 
 use byteorder::{ByteOrder, LittleEndian};
 
-use crate::assembler::directive_parsers::directive;
+use crate::assembler::directive_parsers::directive_combined;
 use crate::assembler::label_parsers::label_declaration;
 use crate::assembler::opcode_parsers::*;
 use crate::assembler::operand_parsers::operand;
@@ -25,7 +25,6 @@ impl AssemblerInstruction {
             results.push(code as u8);
         } else {
             println!("Non-opcode found in opcode field");
-            std::process::exit(1);
         }
 
         for operand in vec![&self.operand1, &self.operand2, &self.operand3] {
@@ -51,10 +50,11 @@ impl AssemblerInstruction {
             }
             Token::LabelUsage { name } => {
                 if let Some(value) = symbols.symbol_value(name) {
-                    let mut wtr = vec![];
-                    LittleEndian::write_u32(&mut wtr, value);
-                    results.push(wtr[0]);
-                    results.push(wtr[1]);
+                    let converted = value as u16;
+                    let byte1 = converted;
+                    let byte2 = converted >> 8;
+                    results.push(byte2 as u8);
+                    results.push(byte1 as u8);
                 } else {
                     println!("No value found for {:?}", name);
                 }
@@ -71,31 +71,49 @@ impl AssemblerInstruction {
     }
 
     pub fn label_name(&self) -> Option<String> {
-        if let Some(Token::LabelDeclaration { name }) = &self.label {
-            Some(name);
+        return match &self.label {
+            Some(Token::LabelDeclaration { name }) => Some(name.to_string()),
+            _ => None,
+        };
+    }
+
+    pub fn is_directive(&self) -> bool {
+        return self.directive.is_some();
+    }
+
+    pub fn directive_name(&self) -> Option<String> {
+        if let Some(Token::Directive { name }) = &self.directive {
+            return Some(name.to_string());
         }
         None
+    }
+
+    pub fn is_opcode(&self) -> bool {
+        return self.opcode.is_some();
+    }
+
+    pub fn has_operands(&self) -> bool {
+        return self.operand1.is_some();
+    }
+
+    pub fn get_string_constant(&self) -> Option<String> {
+        match &self.operand1 {
+            Some(d) => match d {
+                Token::IrString { name } => Some(name.to_string()),
+                _ => None,
+            },
+            None => None,
+        }
     }
 }
 
 named!(pub instruction<CompleteStr, AssemblerInstruction>,
    do_parse!(
        ins: alt!(
-           instruction_combined
+           instruction_combined |
+           directive_combined
        ) >> ( ins )
    )
-);
-
-named!(pub instruction_with_directive<CompleteStr, AssemblerInstruction>,
-    do_parse!(
-        ins: alt!(
-            directive |
-            instruction
-        ) >>
-        (
-            ins
-        )
-    )
 );
 
 named!(pub instruction_combined<CompleteStr, AssemblerInstruction>,
@@ -271,5 +289,53 @@ mod tests {
                 }
             ))
         );
+
+        let result = instruction(CompleteStr(".directive"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: None,
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "directive".to_string()
+                    }),
+                    label: None,
+                }
+            ))
+        );
+
+        if let Ok((_, instruction)) = result {
+            assert_eq!(instruction.directive_name(), Some("directive".to_string()));
+        }
+
+        let result = instruction(CompleteStr("label: .asciiz 'string'"));
+        assert_eq!(
+            result,
+            Ok((
+                CompleteStr(""),
+                AssemblerInstruction {
+                    opcode: None,
+                    operand1: Some(Token::IrString {
+                        name: "string".to_string()
+                    }),
+                    operand2: None,
+                    operand3: None,
+                    directive: Some(Token::Directive {
+                        name: "asciiz".to_string()
+                    }),
+                    label: Some(Token::LabelDeclaration {
+                        name: "label".to_string()
+                    }),
+                }
+            ))
+        );
+
+        if let Ok((_, instruction)) = result {
+            assert_eq!(instruction.label_name(), Some("label".to_string()));
+        }
     }
 }
