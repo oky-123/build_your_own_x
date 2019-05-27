@@ -67,15 +67,17 @@ impl VM {
         return opcode;
     }
 
-    pub fn run(&mut self) {
-        if self.verify_header() {
-            self.pc += PIE_HEADER_LENGTH;
+    pub fn run(&mut self) -> u32 {
+        if !self.verify_header() {
+            println!("Header was incorrect");
+            1
+        } else {
+            self.pc = 65;
             let mut is_done = false;
             while !is_done {
                 is_done = self.execute_instruction();
             }
-        } else {
-            println!("There is no pie header");
+            0
         }
     }
 
