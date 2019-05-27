@@ -1,5 +1,6 @@
 use crate::assembler::program_parsers::program;
 use crate::assembler::Assembler;
+use crate::scheduler::Scheduler;
 use crate::vm::VM;
 
 use std;
@@ -14,6 +15,7 @@ pub struct REPL {
     pub command_buffer: Vec<String>,
     pub vm: VM,
     pub asm: Assembler,
+    pub scheduler: Scheduler,
 }
 
 impl REPL {
@@ -22,6 +24,7 @@ impl REPL {
             vm: VM::new(),
             command_buffer: vec![],
             asm: Assembler::new(),
+            scheduler: Scheduler::new(),
         }
     }
 
