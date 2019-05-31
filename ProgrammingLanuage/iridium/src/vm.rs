@@ -2,7 +2,7 @@ use super::instruction::*;
 use crate::assembler::{PIE_HEADER_LENGTH, PIE_HEADER_PREFIX};
 use std::num::ParseIntError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VM {
     pub registers: [i32; 32],
     pub pc: usize,        // pointer-sized: u64
@@ -67,15 +67,17 @@ impl VM {
         return opcode;
     }
 
-    pub fn run(&mut self) {
-        if self.verify_header() {
-            self.pc += PIE_HEADER_LENGTH;
+    pub fn run(&mut self) -> u32 {
+        if !self.verify_header() {
+            println!("Header was incorrect");
+            1
+        } else {
+            self.pc = 64;
             let mut is_done = false;
             while !is_done {
                 is_done = self.execute_instruction();
             }
-        } else {
-            println!("There is no pie header");
+            0
         }
     }
 
