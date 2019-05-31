@@ -2,15 +2,19 @@ use super::instruction::*;
 use crate::assembler::{PIE_HEADER_LENGTH, PIE_HEADER_PREFIX};
 use std::num::ParseIntError;
 
+use uuid::Uuid;
+
 #[derive(Debug, Clone)]
 pub struct VM {
     pub registers: [i32; 32],
     pub pc: usize,        // pointer-sized: u64
     pub program: Vec<u8>, // u8 <= 256
+    // For division ops
     remainder: u32,
     equal_flag: bool,
     heap: Vec<u8>,
     pub ro_data: Vec<u8>,
+    id: Uuid,
 }
 
 pub fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
@@ -35,6 +39,7 @@ impl VM {
             equal_flag: false,
             heap: vec![],
             ro_data: vec![],
+            uuid: Uuid::new_v4(),
         }
     }
 
