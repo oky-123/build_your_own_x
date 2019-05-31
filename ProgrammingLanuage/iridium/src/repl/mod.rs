@@ -136,8 +136,10 @@ impl REPL {
                     }
                 }
                 ".spawn" => {
+                    // Load file
                     let contents = self.get_data_from_load();
                     if let Some(contents) = contents {
+                        // Assemble file content
                         match self.asm.assemble(&contents) {
                             Ok(mut assembled_program) => {
                                 println!("Sending assembled program to VM");

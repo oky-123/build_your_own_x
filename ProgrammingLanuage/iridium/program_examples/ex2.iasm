@@ -1,0 +1,5 @@
+.data
+.code
+load $0 #100
+load $1 #100
+add $0 $1 $2
