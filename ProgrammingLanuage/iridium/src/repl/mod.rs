@@ -2,7 +2,6 @@ use crate::assembler::program_parsers::program;
 use crate::assembler::Assembler;
 use crate::scheduler::Scheduler;
 use crate::vm::VM;
-
 use std;
 use std::fs::read_to_string;
 use std::io;
@@ -10,7 +9,6 @@ use std::io::Write;
 use std::path::Path;
 
 use nom::types::CompleteStr;
-
 pub struct REPL {
     pub command_buffer: Vec<String>,
     pub vm: VM,
@@ -26,6 +24,27 @@ impl REPL {
             asm: Assembler::new(),
             scheduler: Scheduler::new(),
         }
+    }
+
+    fn get_data_from_load(&mut self) -> Option<String> {
+        let stdin = io::stdin();
+        print!("Please enter the path to the file you wish to load: ");
+        io::stdout().flush().expect("Unable to flush stdout");
+        let mut tmp = String::new();
+        stdin
+            .read_line(&mut tmp)
+            .expect("Unable to read line from user");
+        let tmp = tmp.trim();
+        let filename = Path::new(&tmp);
+        let contents = match read_to_string(filename) {
+            Ok(f) => Some(f),
+            Err(e) => {
+                println!("There was an error opening that file: {:?}", e);
+                None
+            }
+        };
+
+        contents
     }
 
     pub fn run(&mut self) {
@@ -99,32 +118,43 @@ impl REPL {
                     self.vm.run();
                 }
                 ".load_file" => {
-                    print!("Please enter the path to the file you wish to load: ");
-                    io::stdout().flush().expect("Unable to flush stdout");
-                    let mut tmp = String::new();
-                    stdin
-                        .read_line(&mut tmp)
-                        .expect("Unable to read line from user");
-                    let tmp = tmp.trim();
-                    let filename = Path::new(&tmp);
-                    let contents = match read_to_string(filename) {
-                        Ok(f) => f,
-                        Err(e) => {
-                            println!("There was an error opening that file: {:?}", e);
-                            continue;
+                    let contents = self.get_data_from_load();
+                    if let Some(contents) = contents {
+                        let program = match program(CompleteStr(&contents)) {
+                            // Rusts pattern matching is pretty powerful an can even be nested
+                            Ok((_, program)) => program,
+                            Err(e) => {
+                                println!("Unable to parse input: {:?}", e);
+                                continue;
+                            }
+                        };
+                        self.vm
+                            .program
+                            .append(&mut program.to_bytes(&self.asm.symbols));
+                    } else {
+                        continue;
+                    }
+                }
+                ".spawn" => {
+                    let contents = self.get_data_from_load();
+                    if let Some(contents) = contents {
+                        match self.asm.assemble(&contents) {
+                            Ok(mut assembled_program) => {
+                                println!("Sending assembled program to VM");
+                                self.vm.program.append(&mut assembled_program);
+                                println!("{:#?}", self.vm.program);
+                                self.scheduler.get_thread(self.vm.clone());
+                            }
+                            Err(errors) => {
+                                for error in errors {
+                                    println!("Unable to parse input: {}", error);
+                                }
+                                continue;
+                            }
                         }
-                    };
-                    let program = match program(CompleteStr(&contents)) {
-                        // Rusts pattern matching is pretty powerful an can even be nested
-                        Ok((_, program)) => program,
-                        Err(e) => {
-                            println!("Unable to parse input: {:?}", e);
-                            continue;
-                        }
-                    };
-                    self.vm
-                        .program
-                        .append(&mut program.to_bytes(&self.asm.symbols));
+                    } else {
+                        continue;
+                    }
                 }
                 _ => {
                     let program = match program(buffer.into()) {

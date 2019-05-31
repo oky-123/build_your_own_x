@@ -16,7 +16,7 @@ impl Scheduler {
         }
     }
 
-    pub fn get_thread(mut vm: VM) -> thread::JoinHandle<u32> {
+    pub fn get_thread(&self, mut vm: VM) -> thread::JoinHandle<u32> {
         thread::spawn(move || vm.run())
     }
 }
